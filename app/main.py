@@ -1,12 +1,10 @@
 from pathlib import Path
+from typing import Any
 
 import joblib
 import numpy as np
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
-from sklearn.datasets import load_iris
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import StandardScaler
 
 app = FastAPI(
     title="KNN Model Service API",
@@ -23,19 +21,18 @@ class PredictionInput(BaseModel):
     )
 
 
-def load_model():
+def load_model() -> tuple[Any, Any]:
     model_path = Path(__file__).resolve().parent.parent / "colab" / "knn_model.pkl"
     scaler_path = Path(__file__).resolve().parent.parent / "colab" / "scaler.pkl"
 
-    if model_path.exists() and scaler_path.exists():
-        return joblib.load(model_path), joblib.load(scaler_path)
+    if not model_path.exists() or not scaler_path.exists():
+        raise FileNotFoundError(
+            "Không tìm thấy colab/knn_model.pkl hoặc colab/scaler.pkl. "
+            "Hãy chạy colab/train_knn.py trước."
+        )
 
-    iris = load_iris()
-    scaler = StandardScaler()
-    features = scaler.fit_transform(iris.data)
-    model = KNeighborsClassifier(n_neighbors=5, metric="euclidean")
-    model.fit(features, iris.target)
-    return model, scaler
+    # Nạp đúng model và scaler đã được tạo ở Bước 1.
+    return joblib.load(model_path), joblib.load(scaler_path)
 
 
 model, scaler = load_model()
