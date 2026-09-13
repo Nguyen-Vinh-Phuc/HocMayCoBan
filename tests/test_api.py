@@ -1,5 +1,3 @@
-from typing import Any
-
 from fastapi.testclient import TestClient
 
 from app.main import app
@@ -15,20 +13,27 @@ def test_read_root() -> None:
 
 
 def test_predict_endpoint() -> None:
-    payload = {"features": [5.1, 3.5, 1.4, 0.2]}
+    payload = {"year_bought": 2020, "mileage_km": 25000, "engine_cc": 125}
     response = client.post("/predict", json=payload)
-    result: dict[str, Any] = response.json()
+    result = response.json()
 
     assert response.status_code == 200
-    assert result["input_features"] == payload["features"]
-    assert result["predicted_class_id"] == 0
-    assert result["predicted_class_name"] == "Setosa"
+    assert result["input_specs"] == {
+        "nam_dang_ky": 2020,
+        "so_km_da_di": 25000,
+        "dung_tich_cc": 125,
+    }
+    assert isinstance(result["predicted_price_million_vnd"], float)
+    assert result["predicted_price_million_vnd"] > 0
 
 
 def test_predict_rejects_wrong_feature_count() -> None:
-    response = client.post("/predict", json={"features": [5.1, 3.5]})
+    response = client.post(
+        "/predict",
+        json={"year_bought": 2020, "mileage_km": -1, "engine_cc": 125},
+    )
 
-    assert response.status_code == 400
+    assert response.status_code == 422
 
 
 def test_predict_rejects_missing_features() -> None:

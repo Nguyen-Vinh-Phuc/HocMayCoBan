@@ -1,65 +1,60 @@
 from pathlib import Path
-from typing import Any
 
 import joblib
 import numpy as np
+import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 app = FastAPI(
-    title="KNN Model Service API",
-    description="API dự đoán cho mô hình K-Nearest Neighbors",
+    title="Motorbike Price Prediction API (Vietnam)",
+    description="API Dự đoán giá bán xe máy cũ tại Việt Nam sử dụng thuật toán KNN Regressor",
     version="1.0.0"
 )
 
-# Khai báo cấu trúc dữ liệu đầu vào (Ví dụ: Iris Dataset - 4 đặc trưng)
-class PredictionInput(BaseModel):
-    features: list[float] = Field(
-        ..., 
-        example=[5.1, 3.5, 1.4, 0.2],
-        description="Danh sách các đặc trưng (Sepal Length, Sepal Width, Petal Length, Petal Width)"
+class MotorbikeInput(BaseModel):
+    year_bought: int = Field(
+        ..., ge=1990, le=2026, description="Năm đăng ký xe"
     )
+    mileage_km: float = Field(..., ge=0, description="Số km đã đi")
+    engine_cc: int = Field(..., ge=50, le=2000, description="Dung tích xi-lanh")
 
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+MODEL_PATH = PROJECT_ROOT / "colab" / "knn_motorbike_model.pkl"
+SCALER_PATH = PROJECT_ROOT / "colab" / "scaler_motorbike.pkl"
 
-def load_model() -> tuple[Any, Any]:
-    model_path = Path(__file__).resolve().parent.parent / "colab" / "knn_model.pkl"
-    scaler_path = Path(__file__).resolve().parent.parent / "colab" / "scaler.pkl"
-
-    if not model_path.exists() or not scaler_path.exists():
-        raise FileNotFoundError(
-            "Không tìm thấy colab/knn_model.pkl hoặc colab/scaler.pkl. "
-            "Hãy chạy colab/train_knn.py trước."
-        )
-
-    # Nạp đúng model và scaler đã được tạo ở Bước 1.
-    return joblib.load(model_path), joblib.load(scaler_path)
-
-
-model, scaler = load_model()
-class_names = ["Setosa", "Versicolor", "Virginica"]
+try:
+    model = joblib.load(MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
+except (FileNotFoundError, OSError, ValueError) as e:
+    print(f"Lỗi load model: {e}")
+    model, scaler = None, None
 
 @app.get("/")
-def read_root():
-    return {
-        "status": "online",
-        "message": "KNN Machine Learning API đang hoạt động bình thường!"
-    }
+def home():
+    return {"status": "online", "message": "API Dự Đoán Giá Xe Máy Cũ Việt Nam đang hoạt động!"}
 
 @app.post("/predict")
-def predict(data: PredictionInput):
-    try:
-        if len(data.features) != 4:
-            raise HTTPException(status_code=400, detail="Đầu vào phải chứa đúng 4 đặc trưng!")
+def predict_price(data: MotorbikeInput):
+    if model is None or scaler is None:
+        raise HTTPException(
+            status_code=503,
+            detail="Mô hình chưa sẵn sàng. Hãy chạy colab/train_motorbike.py trước.",
+        )
 
-        input_array = np.array(data.features, dtype=float).reshape(1, -1)
-        pred_class = int(model.predict(scaler.transform(input_array))[0])
+    features = pd.DataFrame(
+        [[data.year_bought, data.mileage_km, data.engine_cc]],
+        columns=["year_bought", "mileage_km", "engine_cc"],
+    )
+    features_scaled = scaler.transform(features)
+    predicted_price = model.predict(features_scaled)[0]
 
-        return {
-            "input_features": data.features,
-            "predicted_class_id": pred_class,
-            "predicted_class_name": class_names[pred_class]
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return {
+        "input_specs": {
+            "nam_dang_ky": data.year_bought,
+            "so_km_da_di": data.mileage_km,
+            "dung_tich_cc": data.engine_cc
+        },
+        "predicted_price_million_vnd": round(float(predicted_price), 2),
+        "message": f"Giá dự đoán cho chiếc xe này là khoảng {round(float(predicted_price), 1)} triệu VNĐ"
+    }

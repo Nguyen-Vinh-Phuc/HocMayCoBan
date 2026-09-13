@@ -1,19 +1,11 @@
-# LUẬT VÀ LỆNH ƯU TIÊN CHO CLAUDE AI (PROJECT: HOCMAYCOBAN)
+# HƯỚNG DẪN DỰ ÁN: DỰ ĐOÁN GIÁ XE MÁY CŨ VIỆT NAM (KNN REGRESSOR)
 
-## 1. TÔN CHỈ HOẠT ĐỘNG (Rules)
+## 1. Thông tin dự án
+- Bài toán: Hồi quy (Regression) dự đoán giá xe máy cũ (Đơn vị: Triệu VNĐ).
+- Thư mục `colab/`: Chứa script sinh dữ liệu thực tế thị trường VN, huấn luyện KNN Regressor, xuất ảnh báo cáo.
+- Thư mục `app/`: Triển khai FastAPI nhận input (năm đăng ký, số km, dung tích cc) và trả về giá dự đoán.
+- Thư mục `tests/`: Kiểm thử tự động API bằng Pytest.
 
-- Luôn đọc file này trước khi thực hiện bất kỳ yêu cầu nào.
-- Code phải viết bằng Python 3.10+, sạch sẽ, có Type Hints và Comment bằng Tiếng Việt.
-- BẮT BUỘC thực hiện công việc TỪNG BƯỚC MỘT theo chỉ định của người dùng, không tự ý làm trước các bước sau.
-
-## 2. QUY TRÌNH PHÁT TRIỂN (Làm từng bước)
-
-- **Bước 1**: Viết code huấn luyện mô hình KNN và Lưu Model (`colab/train_knn.py`).
-- **Bước 2**: Viết code API Server FastAPI (`app/main.py`).
-- **Bước 3**: Viết code kiểm thử tự động Pytest (`tests/test_api.py`).
-
-## 3. THÔNG TIN KỸ THUẬT
-
-- Thuật toán sử dụng: K-Nearest Neighbors (KNN).
-- Thư viện chính: scikit-learn, numpy, fastapi, uvicorn, pytest.
-- Thư mục lưu Model: `colab/knn_model.pkl` và `colab/scaler.pkl`.
+## 2. Quy chuẩn Code
+- Dùng Python 3.10+, code sạch, comment tiếng Việt.
+- Sử dụng StandardScaler chuẩn hóa đặc trưng trước khi đưa vào KNN.
