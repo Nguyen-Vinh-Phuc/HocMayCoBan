@@ -20,8 +20,8 @@ class MotorbikeInput(BaseModel):
     engine_cc: int = Field(..., ge=50, le=2000, description="Dung tích xi-lanh")
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-MODEL_PATH = PROJECT_ROOT / "colab" / "knn_motorbike_model.pkl"
-SCALER_PATH = PROJECT_ROOT / "colab" / "scaler_motorbike.pkl"
+MODEL_PATH = PROJECT_ROOT / "colab" / "knn_model.pkl"
+SCALER_PATH = PROJECT_ROOT / "colab" / "scaler.pkl"
 
 try:
     model = joblib.load(MODEL_PATH)

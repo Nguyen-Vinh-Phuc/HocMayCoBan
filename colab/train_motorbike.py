@@ -91,10 +91,12 @@ plt.savefig(OUTPUT_DIRECTORY / "confusion_matrix.png")
 plt.close()
 
 # 7. Lưu Model và Scaler
-joblib.dump(model, OUTPUT_DIRECTORY / "knn_motorbike_model.pkl")
-joblib.dump(scaler, OUTPUT_DIRECTORY / "scaler_motorbike.pkl")
+joblib.dump(model, OUTPUT_DIRECTORY / "knn_model.pkl")
+joblib.dump(scaler, OUTPUT_DIRECTORY / "scaler.pkl")
 
 print("✅ ĐÃ HOÀN THÀNH HUẤN LUYỆN DỰ ĐOÁN GIÁ XE MÁY:")
 print(f"- Sai số trung bình (MAE): {mae:.2f} triệu VNĐ")
 print(f"- Đạt độ tương quan R2 Score: {r2*100:.2f}%")
+print("- Đã lưu model: colab/knn_model.pkl")
+print("- Đã lưu scaler: colab/scaler.pkl")
 print("- Đã lưu ảnh colab/elbow_k.png và colab/confusion_matrix.png")
